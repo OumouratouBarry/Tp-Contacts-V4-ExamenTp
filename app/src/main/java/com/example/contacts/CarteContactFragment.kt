@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.util.GeoPoint
@@ -18,13 +17,16 @@ import org.osmdroid.views.overlay.Marker
 
 class CarteContactFragment : Fragment() {
 
-    private val viewModel: ContactViewModel by activityViewModels()
-    private var contactId: Int = -1
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
+    private var contactName: String = "Contact"
     private lateinit var mapView: MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contactId = arguments?.getInt(ARG_CONTACT_ID) ?: -1
+        latitude = arguments?.getDouble(ARG_LATITUDE, 0.0) ?: 0.0
+        longitude = arguments?.getDouble(ARG_LONGITUDE, 0.0) ?: 0.0
+        contactName = arguments?.getString(ARG_NAME) ?: "Contact"
 
         val ctx = requireContext().applicationContext
         val prefs = ctx.getSharedPreferences("${ctx.packageName}_preferences", Context.MODE_PRIVATE)
@@ -73,20 +75,16 @@ class CarteContactFragment : Fragment() {
     }
 
     private fun afficherPositionContact() {
-        val contact = viewModel.getContactById(contactId)
-        val lat = contact?.latitude
-        val lng = contact?.longitude
-
-        if (contact != null && lat != null && lng != null && lat in -90.0..90.0 && lng in -180.0..180.0) {
-            val point = GeoPoint(lat, lng)
+        if (latitude in -90.0..90.0 && longitude in -180.0..180.0 && (latitude != 0.0 || longitude != 0.0)) {
+            val point = GeoPoint(latitude, longitude)
             mapView.controller.setZoom(15.0)
             mapView.controller.setCenter(point)
 
             val marker = Marker(mapView)
             marker.position = point
             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            marker.title = "${contact.prenom} ${contact.nom}"
-            marker.snippet = "Lat: $lat, Lng: $lng"
+            marker.title = contactName
+            marker.snippet = "Lat: $latitude, Lng: $longitude"
             mapView.overlays.add(marker)
             marker.showInfoWindow()
         } else {
@@ -109,12 +107,16 @@ class CarteContactFragment : Fragment() {
     }
 
     companion object {
-        private const val ARG_CONTACT_ID = "arg_contact_id"
+        private const val ARG_LATITUDE = "arg_latitude"
+        private const val ARG_LONGITUDE = "arg_longitude"
+        private const val ARG_NAME = "arg_name"
 
-        fun newInstance(idContact: Int): CarteContactFragment {
+        fun newInstance(lat: Double, lng: Double, name: String): CarteContactFragment {
             val fragment = CarteContactFragment()
             val args = Bundle().apply {
-                putInt(ARG_CONTACT_ID, idContact)
+                putDouble(ARG_LATITUDE, lat)
+                putDouble(ARG_LONGITUDE, lng)
+                putString(ARG_NAME, name)
             }
             fragment.arguments = args
             return fragment

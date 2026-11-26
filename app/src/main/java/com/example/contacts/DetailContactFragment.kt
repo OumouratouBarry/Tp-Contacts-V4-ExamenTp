@@ -176,16 +176,11 @@ class DetailContactFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            if (contactId != -1) {
-                val c = viewModel.getContactById(contactId)
-                if (c != null) {
-                    c.latitude = lat
-                    c.longitude = lng
-                    viewModel.updateContact(c)
-                }
-            }
+            val nom = edtNom.text.toString().trim()
+            val prenom = edtPrenom.text.toString().trim()
+            val fullName = "$prenom $nom".trim()
 
-            val carteFragment = CarteContactFragment.newInstance(contactId)
+            val carteFragment = CarteContactFragment.newInstance(lat, lng, fullName)
             parentFragmentManager.commit {
                 setReorderingAllowed(true)
                 replace(R.id.fragment_container, carteFragment)
