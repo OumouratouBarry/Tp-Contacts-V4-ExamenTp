@@ -105,6 +105,15 @@
             android:inputType="textEmailAddress"
             android:maxLines="1" />
 
+        <CheckBox
+            android:id="@+id/chkFavori"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Marquer comme favori"
+            android:textSize="16sp"
+            android:textColor="#263B59"
+            android:layout_marginTop="12dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

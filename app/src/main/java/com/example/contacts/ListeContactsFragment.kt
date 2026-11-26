@@ -96,6 +96,12 @@ class ListeContactsFragment : Fragment() {
                 } else {
                     Toast.makeText(context, "Numéro de téléphone invalide", Toast.LENGTH_SHORT).show()
                 }
+            },
+            onFavoriteClick = { contact ->
+                contact.favori = if (contact.favori == 1) 0 else 1
+                viewModel.updateContact(contact) {
+                    viewModel.loadContacts()
+                }
             }
         )
     }

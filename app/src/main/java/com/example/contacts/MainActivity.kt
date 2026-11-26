@@ -2,6 +2,7 @@ package com.example.contacts
 
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -15,25 +16,6 @@ class MainActivity : AppCompatActivity() {
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-
-        toolbar.inflateMenu(R.menu.main_menu)
-        val menu = toolbar.menu
-        val settingsItem = menu?.findItem(R.id.action_settings)
-        settingsItem?.icon?.setTint(Color.WHITE)
-
-        toolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_settings -> {
-                    supportFragmentManager.commit {
-                        setReorderingAllowed(true)
-                        replace(R.id.fragment_container, ParametresFragment())
-                        addToBackStack(null)
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
 
         supportFragmentManager.addOnBackStackChangedListener {
             val canPop = supportFragmentManager.backStackEntryCount > 0
@@ -52,8 +34,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        val settingsItem = menu?.findItem(R.id.action_settings)
+        settingsItem?.icon?.setTint(Color.WHITE)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_settings -> {
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    replace(R.id.fragment_container, ParametresFragment())
+                    addToBackStack(null)
+                }
+                true
+            }
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
                 true

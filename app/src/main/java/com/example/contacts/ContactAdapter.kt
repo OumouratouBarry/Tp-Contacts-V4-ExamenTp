@@ -18,7 +18,8 @@ class ContactAdapter(
     private val textColor: Int,
     private val fontSize: Float,
     private val onContactClick: (Contact) -> Unit,
-    private val onCallClick: (Contact) -> Unit
+    private val onCallClick: (Contact) -> Unit,
+    private val onFavoriteClick: (Contact) -> Unit
 ) : RecyclerView.Adapter<ContactAdapter.ContactViewHolder>() {
 
     class ContactViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -26,6 +27,7 @@ class ContactAdapter(
         val txtNom: TextView = view.findViewById(R.id.txtNom)
         val txtPrenom: TextView = view.findViewById(R.id.txtPrenom)
         val txtTelephone: TextView = view.findViewById(R.id.txtTelephone)
+        val imgFavorite: ImageView = view.findViewById(R.id.imgFavorite)
         val btnCallRow: ImageButton = view.findViewById(R.id.btnCallRow)
     }
 
@@ -48,6 +50,16 @@ class ContactAdapter(
         holder.txtNom.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize)
         holder.txtPrenom.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize)
         holder.txtTelephone.setTextSize(TypedValue.COMPLEX_UNIT_SP, maxOf(12f, fontSize - 2f))
+
+        // Favorite icon state & click
+        if (contact.favori == 1) {
+            holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_on)
+        } else {
+            holder.imgFavorite.setImageResource(android.R.drawable.btn_star_big_off)
+        }
+        holder.imgFavorite.setOnClickListener {
+            onFavoriteClick(contact)
+        }
 
         // Call button visibility & click
         if (showCallButton) {

@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
@@ -29,6 +30,7 @@ class DetailContactFragment : Fragment() {
     private lateinit var edtEmail: EditText
     private lateinit var edtLatitude: EditText
     private lateinit var edtLongitude: EditText
+    private lateinit var chkFavori: CheckBox
     private lateinit var btnSupprimer: Button
 
     private var contactId: Int = -1
@@ -85,6 +87,7 @@ class DetailContactFragment : Fragment() {
         edtEmail = view.findViewById(R.id.edtEmail)
         edtLatitude = view.findViewById(R.id.edtLatitude)
         edtLongitude = view.findViewById(R.id.edtLongitude)
+        chkFavori = view.findViewById(R.id.chkFavori)
         btnSupprimer = view.findViewById(R.id.btnSupprimer)
 
         val btnGalerie = view.findViewById<Button>(R.id.btnGalerie)
@@ -97,6 +100,7 @@ class DetailContactFragment : Fragment() {
 
         if (contactId == -1) {
             btnSupprimer.visibility = View.GONE
+            chkFavori.isChecked = false
         } else {
             btnSupprimer.visibility = View.VISIBLE
             val contact = viewModel.getContactById(contactId)
@@ -106,6 +110,7 @@ class DetailContactFragment : Fragment() {
                 edtTelephone.setText(contact.telephone)
                 edtEmail.setText(contact.email)
                 photoUri = contact.photo
+                chkFavori.isChecked = (contact.favori == 1)
                 ContactAdapter.chargerPhoto(requireContext(), imgDetail, photoUri)
 
                 if (contact.latitude != null) {
@@ -226,6 +231,7 @@ class DetailContactFragment : Fragment() {
         val email = edtEmail.text.toString().trim()
         val latStr = edtLatitude.text.toString().trim()
         val lngStr = edtLongitude.text.toString().trim()
+        val favoriVal = if (chkFavori.isChecked) 1 else 0
 
         if (nom.isEmpty()) {
             edtNom.error = "Le nom est obligatoire"
@@ -279,7 +285,8 @@ class DetailContactFragment : Fragment() {
             email = email,
             photo = photoUri,
             latitude = lat,
-            longitude = lng
+            longitude = lng,
+            favori = favoriVal
         )
 
         if (contactId == -1) {
