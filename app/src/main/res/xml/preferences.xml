@@ -24,5 +24,13 @@
             app:summaryOn="Bouton d'appel affiché"
             app:summaryOff="Bouton d'appel masqué"
             app:defaultValue="false" />
+
+        <ListPreference
+            app:key="ordre_tri"
+            app:title="Ordre de tri"
+            app:entries="@array/tris_libelles"
+            app:entryValues="@array/tris_valeurs"
+            app:defaultValue="nom"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>

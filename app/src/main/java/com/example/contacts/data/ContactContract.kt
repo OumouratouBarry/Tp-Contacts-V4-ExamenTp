@@ -10,4 +10,5 @@ object ContactContract {
     const val COLUMN_PHOTO_URI = "photo_uri"
     const val COLUMN_LATITUDE = "latitude"
     const val COLUMN_LONGITUDE = "longitude"
+    const val COLUMN_FAVORI = "favori"
 }

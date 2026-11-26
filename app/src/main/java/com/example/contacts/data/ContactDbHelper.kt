@@ -18,7 +18,8 @@ class ContactDbHelper private constructor(context: Context) :
                 ${ContactContract.COLUMN_EMAIL} TEXT,
                 ${ContactContract.COLUMN_PHOTO_URI} TEXT,
                 ${ContactContract.COLUMN_LATITUDE} REAL,
-                ${ContactContract.COLUMN_LONGITUDE} REAL
+                ${ContactContract.COLUMN_LONGITUDE} REAL,
+                ${ContactContract.COLUMN_FAVORI} INTEGER DEFAULT 0
             )
         """.trimIndent()
         db.execSQL(createTableQuery)
@@ -26,8 +27,12 @@ class ContactDbHelper private constructor(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS ${ContactContract.TABLE_NAME}")
-        onCreate(db)
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE ${ContactContract.TABLE_NAME} ADD COLUMN ${ContactContract.COLUMN_FAVORI} INTEGER DEFAULT 0")
+        } else {
+            db.execSQL("DROP TABLE IF EXISTS ${ContactContract.TABLE_NAME}")
+            onCreate(db)
+        }
     }
 
     private fun insertDemoContacts(db: SQLiteDatabase) {
@@ -40,6 +45,7 @@ class ContactDbHelper private constructor(context: Context) :
                 put(ContactContract.COLUMN_PHOTO_URI, "photo_barry")
                 put(ContactContract.COLUMN_LATITUDE, 9.5370)
                 put(ContactContract.COLUMN_LONGITUDE, -13.6785)
+                put(ContactContract.COLUMN_FAVORI, 1)
             },
             ContentValues().apply {
                 put(ContactContract.COLUMN_NOM, "Diallo")
@@ -49,6 +55,7 @@ class ContactDbHelper private constructor(context: Context) :
                 put(ContactContract.COLUMN_PHOTO_URI, "photo_fatoumata")
                 put(ContactContract.COLUMN_LATITUDE, 14.6937)
                 put(ContactContract.COLUMN_LONGITUDE, -17.4441)
+                put(ContactContract.COLUMN_FAVORI, 0)
             },
             ContentValues().apply {
                 put(ContactContract.COLUMN_NOM, "Camara")
@@ -58,6 +65,7 @@ class ContactDbHelper private constructor(context: Context) :
                 put(ContactContract.COLUMN_PHOTO_URI, "photo_mamadou")
                 put(ContactContract.COLUMN_LATITUDE, 5.3600)
                 put(ContactContract.COLUMN_LONGITUDE, -4.0083)
+                put(ContactContract.COLUMN_FAVORI, 1)
             },
             ContentValues().apply {
                 put(ContactContract.COLUMN_NOM, "Sow")
@@ -67,6 +75,7 @@ class ContactDbHelper private constructor(context: Context) :
                 put(ContactContract.COLUMN_PHOTO_URI, "photo_aminata")
                 putNull(ContactContract.COLUMN_LATITUDE)
                 putNull(ContactContract.COLUMN_LONGITUDE)
+                put(ContactContract.COLUMN_FAVORI, 0)
             },
             ContentValues().apply {
                 put(ContactContract.COLUMN_NOM, "Bah")
@@ -76,6 +85,7 @@ class ContactDbHelper private constructor(context: Context) :
                 put(ContactContract.COLUMN_PHOTO_URI, "photo_ibrahima")
                 put(ContactContract.COLUMN_LATITUDE, 48.8566)
                 put(ContactContract.COLUMN_LONGITUDE, 2.3522)
+                put(ContactContract.COLUMN_FAVORI, 0)
             }
         )
 
@@ -86,7 +96,7 @@ class ContactDbHelper private constructor(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "contacts.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
 
         @Volatile
         private var INSTANCE: ContactDbHelper? = null

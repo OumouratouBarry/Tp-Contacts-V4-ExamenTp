@@ -24,4 +24,15 @@
         <item>#CC0000</item>
         <item>#660066</item>
     </string-array>
+
+    <string-array name="tris_libelles">
+        <item>Nom (A-Z)</item>
+        <item>Prénom (A-Z)</item>
+        <item>Favoris en premier</item>
+    </string-array>
+    <string-array name="tris_valeurs">
+        <item>nom</item>
+        <item>prenom</item>
+        <item>favori</item>
+    </string-array>
 </resources>

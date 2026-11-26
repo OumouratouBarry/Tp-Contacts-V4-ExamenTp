@@ -8,5 +8,6 @@ data class Contact(
     var email: String,
     var photo: String = "",
     var latitude: Double? = null,
-    var longitude: Double? = null
+    var longitude: Double? = null,
+    var favori: Int = 0
 )

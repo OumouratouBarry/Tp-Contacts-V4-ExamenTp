@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 class ContactViewModel(application: Application) : AndroidViewModel(application) {
 
     private val contactDao = ContactDao(application)
+    private val appContext = application
 
     private val _displayedContacts = MutableLiveData<List<Contact>>()
     val displayedContacts: LiveData<List<Contact>> get() = _displayedContacts
@@ -24,8 +25,9 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadContacts() {
         viewModelScope.launch {
+            val sortOrder = PreferencesManager.getSortOrder(appContext)
             val contacts = withContext(Dispatchers.IO) {
-                contactDao.getAll()
+                contactDao.getAll(sortOrder)
             }
             _displayedContacts.value = contacts
         }
@@ -69,14 +71,30 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
 
     fun filterContacts(query: String) {
         viewModelScope.launch {
+            val sortOrder = PreferencesManager.getSortOrder(appContext)
             val contacts = withContext(Dispatchers.IO) {
                 if (query.trim().isEmpty()) {
-                    contactDao.getAll()
+                    contactDao.getAll(sortOrder)
                 } else {
-                    contactDao.search(query.trim())
+                    contactDao.search(query.trim(), sortOrder)
                 }
             }
             _displayedContacts.value = contacts
+        }
+    }
+
+    // Bonus: Import 100 contacts test and duration comparison
+    fun compareImportTransactions(onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val timeWithout = withContext(Dispatchers.IO) {
+                contactDao.import100Contacts(withTransaction = false)
+            }
+            val timeWith = withContext(Dispatchers.IO) {
+                contactDao.import100Contacts(withTransaction = true)
+            }
+            loadContacts()
+            val result = "Import 100 contacts:\nSans transaction : ${timeWithout}ms\nAvec transaction : ${timeWith}ms"
+            onResult(result)
         }
     }
 }

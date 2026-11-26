@@ -25,4 +25,9 @@ object PreferencesManager {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         return prefs.getBoolean("appel_depuis_liste", false)
     }
+
+    fun getSortOrder(context: Context): String {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        return prefs.getString("ordre_tri", "nom") ?: "nom"
+    }
 }

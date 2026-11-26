@@ -3,6 +3,7 @@ package com.example.contacts.data
 import android.content.ContentValues
 import android.content.Context
 import com.example.contacts.Contact
+import kotlin.system.measureTimeMillis
 
 class ContactDao(context: Context) {
     private val dbHelper = ContactDbHelper.getInstance(context)
@@ -17,6 +18,7 @@ class ContactDao(context: Context) {
             put(ContactContract.COLUMN_PHOTO_URI, contact.photo)
             put(ContactContract.COLUMN_LATITUDE, contact.latitude)
             put(ContactContract.COLUMN_LONGITUDE, contact.longitude)
+            put(ContactContract.COLUMN_FAVORI, contact.favori)
         }
         return db.insert(ContactContract.TABLE_NAME, null, values)
     }
@@ -31,6 +33,7 @@ class ContactDao(context: Context) {
             put(ContactContract.COLUMN_PHOTO_URI, contact.photo)
             put(ContactContract.COLUMN_LATITUDE, contact.latitude)
             put(ContactContract.COLUMN_LONGITUDE, contact.longitude)
+            put(ContactContract.COLUMN_FAVORI, contact.favori)
         }
         return db.update(
             ContactContract.TABLE_NAME,
@@ -49,10 +52,15 @@ class ContactDao(context: Context) {
         )
     }
 
-    fun getAll(): List<Contact> {
+    fun getAll(sortOrderOption: String = "nom"): List<Contact> {
         val contacts = mutableListOf<Contact>()
         val db = dbHelper.readableDatabase
-        val sortOrder = "${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+        val sortOrder = when (sortOrderOption) {
+            "favori" -> "${ContactContract.COLUMN_FAVORI} DESC, ${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+            "prenom" -> "${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC"
+            else -> "${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+        }
+
         db.query(
             ContactContract.TABLE_NAME,
             null,
@@ -70,6 +78,7 @@ class ContactDao(context: Context) {
             val photoIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_PHOTO_URI)
             val latIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LATITUDE)
             val lngIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LONGITUDE)
+            val favIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_FAVORI)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getInt(idIdx)
@@ -80,8 +89,9 @@ class ContactDao(context: Context) {
                 val photo = cursor.getString(photoIdx) ?: ""
                 val latitude = if (cursor.isNull(latIdx)) null else cursor.getDouble(latIdx)
                 val longitude = if (cursor.isNull(lngIdx)) null else cursor.getDouble(lngIdx)
+                val favori = cursor.getInt(favIdx)
 
-                contacts.add(Contact(id, nom, prenom, telephone, email, photo, latitude, longitude))
+                contacts.add(Contact(id, nom, prenom, telephone, email, photo, latitude, longitude, favori))
             }
         }
         return contacts
@@ -107,6 +117,7 @@ class ContactDao(context: Context) {
                 val photoIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_PHOTO_URI)
                 val latIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LATITUDE)
                 val lngIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LONGITUDE)
+                val favIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_FAVORI)
 
                 return Contact(
                     id = cursor.getInt(idIdx),
@@ -116,20 +127,25 @@ class ContactDao(context: Context) {
                     email = cursor.getString(emailIdx) ?: "",
                     photo = cursor.getString(photoIdx) ?: "",
                     latitude = if (cursor.isNull(latIdx)) null else cursor.getDouble(latIdx),
-                    longitude = if (cursor.isNull(lngIdx)) null else cursor.getDouble(lngIdx)
+                    longitude = if (cursor.isNull(lngIdx)) null else cursor.getDouble(lngIdx),
+                    favori = cursor.getInt(favIdx)
                 )
             }
         }
         return null
     }
 
-    fun search(texte: String): List<Contact> {
+    fun search(texte: String, sortOrderOption: String = "nom"): List<Contact> {
         val contacts = mutableListOf<Contact>()
         val db = dbHelper.readableDatabase
         val selection = "${ContactContract.COLUMN_NOM} LIKE ? OR ${ContactContract.COLUMN_PRENOM} LIKE ? OR ${ContactContract.COLUMN_TELEPHONE} LIKE ?"
         val searchArg = "%$texte%"
         val selectionArgs = arrayOf(searchArg, searchArg, searchArg)
-        val sortOrder = "${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+        val sortOrder = when (sortOrderOption) {
+            "favori" -> "${ContactContract.COLUMN_FAVORI} DESC, ${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+            "prenom" -> "${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC"
+            else -> "${ContactContract.COLUMN_NOM} COLLATE NOCASE ASC, ${ContactContract.COLUMN_PRENOM} COLLATE NOCASE ASC"
+        }
 
         db.query(
             ContactContract.TABLE_NAME,
@@ -148,6 +164,7 @@ class ContactDao(context: Context) {
             val photoIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_PHOTO_URI)
             val latIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LATITUDE)
             val lngIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_LONGITUDE)
+            val favIdx = cursor.getColumnIndexOrThrow(ContactContract.COLUMN_FAVORI)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getInt(idIdx)
@@ -158,10 +175,46 @@ class ContactDao(context: Context) {
                 val photo = cursor.getString(photoIdx) ?: ""
                 val latitude = if (cursor.isNull(latIdx)) null else cursor.getDouble(latIdx)
                 val longitude = if (cursor.isNull(lngIdx)) null else cursor.getDouble(lngIdx)
+                val favori = cursor.getInt(favIdx)
 
-                contacts.add(Contact(id, nom, prenom, telephone, email, photo, latitude, longitude))
+                contacts.add(Contact(id, nom, prenom, telephone, email, photo, latitude, longitude, favori))
             }
         }
         return contacts
+    }
+
+    fun import100Contacts(withTransaction: Boolean): Long {
+        val db = dbHelper.writableDatabase
+        return measureTimeMillis {
+            if (withTransaction) {
+                db.beginTransaction()
+                try {
+                    for (i in 1..100) {
+                        val values = ContentValues().apply {
+                            put(ContactContract.COLUMN_NOM, "TestNom$i")
+                            put(ContactContract.COLUMN_PRENOM, "TestPrenom$i")
+                            put(ContactContract.COLUMN_TELEPHONE, "06000000$i")
+                            put(ContactContract.COLUMN_EMAIL, "test$i@gmail.com")
+                            put(ContactContract.COLUMN_FAVORI, 0)
+                        }
+                        db.insert(ContactContract.TABLE_NAME, null, values)
+                    }
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
+                }
+            } else {
+                for (i in 1..100) {
+                    val values = ContentValues().apply {
+                        put(ContactContract.COLUMN_NOM, "TestNom$i")
+                        put(ContactContract.COLUMN_PRENOM, "TestPrenom$i")
+                        put(ContactContract.COLUMN_TELEPHONE, "06000000$i")
+                        put(ContactContract.COLUMN_EMAIL, "test$i@gmail.com")
+                        put(ContactContract.COLUMN_FAVORI, 0)
+                    }
+                    db.insert(ContactContract.TABLE_NAME, null, values)
+                }
+            }
+        }
     }
 }
